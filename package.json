@@ -31,5 +31,5 @@
     "tunnel": "expo start --tunnel"
     "typecheck": "tsc --noEmit"
   },
-  "private": true
+  "private": "true"
 }
