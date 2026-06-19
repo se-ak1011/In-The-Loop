@@ -57,6 +57,9 @@ types/
 
 ## Local development
 
+See `PREVIEW.md` for Expo Go, web, and GitHub Codespaces preview instructions.
+
+
 ```bash
 npm install
 npm start
