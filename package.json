@@ -27,8 +27,11 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+codex/audit-repository-for-build-readiness-m9kb62
     "typecheck": "tsc --noEmit",
     "tunnel": "expo start --tunnel"
+    "typecheck": "tsc --noEmit"
+ main
   },
   "private": true
 }
