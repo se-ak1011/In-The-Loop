@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PROJECTS } from '../../data/mockData';
+import { mockRepository } from '../../services/mockRepository';
+
+const { projects: PROJECTS } = mockRepository;
 import { Colors } from '../../constants/theme';
 import { ProjectCard } from '../../components/ProjectCard';
 import { EmptyState } from '../../components/EmptyState';

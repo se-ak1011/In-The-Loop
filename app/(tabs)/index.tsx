@@ -2,7 +2,9 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PROJECTS, TASKS, UPDATES, DECISIONS, DOCUMENTS, CURRENT_USER, USERS } from '../../data/mockData';
+import { mockRepository } from '../../services/mockRepository';
+
+const { projects: PROJECTS, tasks: TASKS, updates: UPDATES, decisions: DECISIONS, documents: DOCUMENTS, currentUser: CURRENT_USER, users: USERS } = mockRepository;
 import { Colors } from '../../constants/theme';
 import { ProjectCard } from '../../components/ProjectCard';
 import { StatusChip } from '../../components/StatusChip';

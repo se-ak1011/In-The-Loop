@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TASKS, PROJECTS } from '../../data/mockData';
+import { mockRepository } from '../../services/mockRepository';
+
+const { tasks: TASKS, projects: PROJECTS } = mockRepository;
 import { Colors } from '../../constants/theme';
 import { StatusChip } from '../../components/StatusChip';
 import { Avatar } from '../../components/Avatar';
