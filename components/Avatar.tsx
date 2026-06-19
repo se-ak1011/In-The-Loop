@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { USERS } from '../data/mockData';
+import { mockRepository } from '../services/mockRepository';
+
+const { users: USERS } = mockRepository;
 
 interface Props {
   userId: string;
