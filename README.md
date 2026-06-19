@@ -68,11 +68,13 @@ Useful commands:
 npm run android
 npm run ios
 npm run web
-npx tsc --noEmit
+npm run typecheck
 ```
 
 ## Notes
 
 - Expo Router is the app entrypoint via `expo-router/entry`.
 - Mock data lives in `data/mockData.ts`.
-- AI Summary and Translate are currently UI placeholders for a future service integration.
+- Mock data is wrapped by `services/mockRepository.ts` so it can be swapped for Supabase later without rewriting every screen.
+- Project summaries now use `services/ai.ts`: without an AI endpoint, the app shows a deterministic local summary; with `EXPO_PUBLIC_AI_SUMMARY_ENDPOINT`, it calls your own server-side summary endpoint.
+- Supabase environment variables are detected via `config.ts`; add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` when you are ready to wire live data. Keep `OPENAI_API_KEY` server-side only; never add it with an `EXPO_PUBLIC_` prefix.
