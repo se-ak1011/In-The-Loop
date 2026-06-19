@@ -30,7 +30,6 @@
     "typecheck": "tsc --noEmit",
     "tunnel": "expo start --tunnel"
     "typecheck": "tsc --noEmit"
-    main
   },
   "private": true
 }
