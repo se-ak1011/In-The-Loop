@@ -1,12 +1,16 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
+import { Alert, ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PROJECTS, UPDATES, TASKS, DOCUMENTS, DECISIONS, USERS } from '../../data/mockData';
 import { Colors, CategoryIcons, CategoryLabels } from '../../constants/theme';
+import { mockRepository } from '../../services/mockRepository';
+import { generateProjectSummary } from '../../services/ai';
+
 import { StatusChip } from '../../components/StatusChip';
 import { Avatar } from '../../components/Avatar';
 import { ProgressBar } from '../../components/ProgressBar';
+
+const { users: USERS } = mockRepository;
 
 function formatDateTime(iso: string) {
   const d = new Date(iso);
@@ -26,7 +30,8 @@ export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const navigation = useNavigation();
 
-  const project = PROJECTS.find(p => p.id === id);
+  const [isSummarising, setIsSummarising] = React.useState(false);
+  const { project, updates, tasks, documents: docs, decisions } = mockRepository.getProjectBundle(id);
   if (!project) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -41,11 +46,19 @@ export default function ProjectDetailScreen() {
     navigation.setOptions({ title: project.title });
   }, [navigation, project.title]);
 
-  const updates = UPDATES.filter(u => u.projectId === id).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  const tasks = TASKS.filter(t => t.projectId === id);
-  const docs = DOCUMENTS.filter(d => d.projectId === id);
-  const decisions = DECISIONS.filter(d => d.projectId === id);
   const owner = USERS[project.owner];
+
+  const handleSummarise = async () => {
+    setIsSummarising(true);
+    try {
+      const summary = await generateProjectSummary({ project, tasks, updates, decisions, documents: docs });
+      Alert.alert(summary.source === 'remote' ? 'AI Summary' : 'Local Summary', `${summary.text}\n\n${summary.note}`);
+    } catch (error) {
+      Alert.alert('Summary unavailable', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setIsSummarising(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -100,8 +113,8 @@ export default function ProjectDetailScreen() {
           )}
         </View>
 
-        <Pressable style={styles.aiButton}>
-          <Text style={styles.aiButtonText}>🤖 Summarise this for my partner</Text>
+        <Pressable style={[styles.aiButton, isSummarising && styles.aiButtonDisabled]} onPress={handleSummarise} disabled={isSummarising}>
+          <Text style={styles.aiButtonText}>{isSummarising ? 'Summarising…' : '🤖 Summarise this for my partner'}</Text>
         </Pressable>
 
         {tasks.length > 0 && (
@@ -236,6 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: 16, borderWidth: 1, borderColor: Colors.border,
   },
   aiButtonText: { color: Colors.secondary, fontSize: 13, fontWeight: '500' },
+  aiButtonDisabled: { opacity: 0.6 },
   section: { marginBottom: 16 },
   sectionTitle: { color: Colors.primary, fontSize: 15, fontWeight: '700', marginBottom: 10 },
   stack: { gap: 8 },

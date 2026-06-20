@@ -1,10 +1,14 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
+import { Alert, ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/theme';
-import { DECISIONS, ACTIVITY, USERS, PROJECTS } from '../../data/mockData';
+import { mockRepository } from '../../services/mockRepository';
+import { getBackendStatusMessage } from '../../services/backend';
+import { generateProjectSummary } from '../../services/ai';
 import { StatusChip } from '../../components/StatusChip';
 import { Avatar } from '../../components/Avatar';
+
+const { decisions: DECISIONS, activity: ACTIVITY, users: USERS, projects: PROJECTS } = mockRepository;
 
 function formatTime(iso: string) {
   const d = new Date(iso);
@@ -28,7 +32,32 @@ const ACTIVITY_ICONS: Record<string, string> = {
 };
 
 export default function MoreScreen() {
+  const [isGenerating, setIsGenerating] = React.useState(false);
   const pendingDecisions = DECISIONS.filter(d => d.status === 'needs_decision' || d.status === 'discussing');
+
+  const handleGenerateSummary = async () => {
+    const project = PROJECTS.find(item => item.status !== 'done') ?? PROJECTS[0];
+    if (!project) return;
+
+    setIsGenerating(true);
+    try {
+      const bundle = mockRepository.getProjectBundle(project.id);
+      if (!bundle.project) return;
+
+      const summary = await generateProjectSummary({
+        project: bundle.project,
+        tasks: bundle.tasks,
+        updates: bundle.updates,
+        decisions: bundle.decisions,
+        documents: bundle.documents,
+      });
+      Alert.alert(summary.source === 'remote' ? 'AI Summary' : 'Local Summary', `${summary.text}\n\n${summary.note}`);
+    } catch (error) {
+      Alert.alert('Summary unavailable', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -37,8 +66,8 @@ export default function MoreScreen() {
           <Text style={styles.sectionTitle}>Tools</Text>
           <View style={styles.menuGrid}>
             {[
-              { icon: '🤖', label: 'AI Summary', sub: 'Summarise for partner', onPress: () => {} },
-              { icon: '💬', label: 'Translate', sub: 'Calm a messy update', onPress: () => {} },
+              { icon: '🤖', label: 'AI Summary', sub: 'Summarise for partner', onPress: handleGenerateSummary },
+              { icon: '💬', label: 'Translate', sub: 'Calm a messy update', onPress: () => Alert.alert('Translator not wired yet', 'The AI service is ready for summaries now. Translator prompt wiring can use the same service next.') },
             ].map(item => (
               <Pressable key={item.label} style={styles.menuCard} onPress={item.onPress}>
                 <Text style={styles.menuIcon}>{item.icon}</Text>
@@ -91,10 +120,10 @@ export default function MoreScreen() {
           <View style={styles.aiCard}>
             <Text style={styles.aiTitle}>Summarise for your partner</Text>
             <Text style={styles.aiSub}>Select a project and generate a plain-English summary of what's happening, what changed, and what needs doing.</Text>
-            <Pressable style={styles.aiButton}>
-              <Text style={styles.aiButtonText}>🤖 Generate Summary</Text>
+            <Pressable style={[styles.aiButton, isGenerating && styles.aiButtonDisabled]} onPress={handleGenerateSummary} disabled={isGenerating}>
+              <Text style={styles.aiButtonText}>{isGenerating ? 'Generating…' : '🤖 Generate Summary'}</Text>
             </Pressable>
-            <Text style={styles.aiNote}>AI integration placeholder — connect OpenAI/Anthropic in /services/ai.ts</Text>
+            <Text style={styles.aiNote}>{getBackendStatusMessage()}</Text>
           </View>
         </View>
 
@@ -180,6 +209,7 @@ const styles = StyleSheet.create({
   aiSub: { color: Colors.secondary, fontSize: 13, lineHeight: 18 },
   aiButton: { backgroundColor: Colors.elevated, borderRadius: 8, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
   aiButtonText: { color: Colors.primary, fontSize: 14, fontWeight: '500' },
+  aiButtonDisabled: { opacity: 0.6 },
   aiNote: { color: Colors.muted, fontSize: 11, fontStyle: 'italic' },
   translateCard: {
     backgroundColor: Colors.surface, borderRadius: 12, padding: 16,
